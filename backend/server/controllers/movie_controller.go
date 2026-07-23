@@ -10,9 +10,12 @@ import (
 	"github.com/keverrettcode-dev/movienightv2/backend/server/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"github.com/go-playground/validator/v10"
 )
 
 var movieCollection *mongo.Collection = database.OpenCollection("movies")
+
+var validator = validator.New()
 
 func GetMovies() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -55,6 +58,26 @@ func GetMovie() gin.HandlerFunc{
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error":"Unable to locate Movie"})
+		}
+
+		c.JSON(http.StatusOK, movie)
+	}
+}
+
+func AddMovie() gin.HandlersChain{
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var movie models.Movie
+
+		iferr := c.ShouldBindJSON(&movie); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input."})
+			return
+		}
+		if err:= validate.Struct(movie); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed", "details": err.Error()})
+			return
 		}
 	}
 }

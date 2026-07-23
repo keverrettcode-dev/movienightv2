@@ -8,12 +8,7 @@ import (
 	controller "github.com/keverrettcode-dev/movienightv2/backend/server/controllers"
 )
 
-func GetMovies() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(200, gin.H{"message":"List of movies"})
-		
-	}
-}
+
 
 func main() {
 	//This is the main function
@@ -26,6 +21,8 @@ func main() {
 	})
 
 	router.GET("/movies", controller.GetMovies())
+
+	router.GET("/movie/:imdb_id", controller.GetMovie())
 
 	router.GET("/test", func(c *gin.Context) {
 		c.String(200, "This is a test.")
