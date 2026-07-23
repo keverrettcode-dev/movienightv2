@@ -36,3 +36,25 @@ func GetMovies() gin.HandlerFunc {
 		c.JSON(http.StatusOK, movies)
 	}
 }
+
+func GetMovie() gin.HandlerFunc{
+	//this code enforces a 100s time-limit on incomping API requests to prevent it from running forever and creating memory leaks
+	return func(c *gin.Context) {
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		movieID := c.Param("imdb_id")
+
+		if movieID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error":"Movie ID is required"})
+			return
+		}
+		var movie models.Movie
+
+		err := movieCollection.FindOne(ctx, bson.M{"imdb_id": movieID}).Decode(&movie)
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error":"Unable to locate Movie"})
+		}
+	}
+}
