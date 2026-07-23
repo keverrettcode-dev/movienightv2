@@ -79,5 +79,10 @@ func AddMovie() gin.HandlersChain{
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed", "details": err.Error()})
 			return
 		}
+		result, err := movieCollection.InsertOne(ctx, movie)
+
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to add movie."})
+		}
 	}
 }

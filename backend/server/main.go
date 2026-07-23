@@ -22,7 +22,7 @@ func main() {
 
 	router.GET("/movies", controller.GetMovies())
 
-	router.GET("/movie/:imdb_id", controller.GetMovie())
+	router.GET("/movie/:imdb_id ", controller.GetMovie())
 
 	router.GET("/test", func(c *gin.Context) {
 		c.String(200, "This is a test.")
