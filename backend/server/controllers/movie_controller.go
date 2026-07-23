@@ -6,34 +6,35 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/keverrettcode-dev/movienightv2/backend/server/database"
 	"github.com/keverrettcode-dev/movienightv2/backend/server/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
-	"github.com/go-playground/validator/v10"
 )
 
 var movieCollection *mongo.Collection = database.OpenCollection("movies")
 
-var validator = validator.New()
+var validate = validator.New()
+
 
 func GetMovies() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		//Code that queries MongoDB Database
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 
 		var movies []models.Movie
 
 		cursor, err := movieCollection.Find(ctx, bson.M{})
-
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error":"Failed to fetch movie-data."})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch movie-data."})
+			return
 		}
 		defer cursor.Close(ctx)
 
 		if err = cursor.All(ctx, &movies); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode movies."})
+			return
 		}
 
 		c.JSON(http.StatusOK, movies)
@@ -58,31 +59,41 @@ func GetMovie() gin.HandlerFunc{
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error":"Unable to locate Movie"})
+
+		return 
 		}
 
 		c.JSON(http.StatusOK, movie)
 	}
 }
 
-func AddMovie() gin.HandlersChain{
+func AddMovie() gin.HandlerFunc{
 	return func(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-		defer cancel()
+		
+		defer cancel();
 
-		var movie models.Movie
+		var movie models.Movie;
 
-		iferr := c.ShouldBindJSON(&movie); err != nil {
+		if err := c.ShouldBindJSON(&movie); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input."})
 			return
 		}
-		if err:= validate.Struct(movie); err != nil {
+		
+		if err := validate.Struct(movie); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Validation failed", "details": err.Error()})
 			return
 		}
+		
 		result, err := movieCollection.InsertOne(ctx, movie)
 
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to add movie."})
+			return
 		}
+
+		c.JSON(http.StatusCreated, result)
 	}
 }
+
+

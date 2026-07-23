@@ -24,6 +24,8 @@ func main() {
 
 	router.GET("/movie/:imdb_id ", controller.GetMovie())
 
+	router.POST("/addmovie", controller.AddMovie())
+
 	router.GET("/test", func(c *gin.Context) {
 		c.String(200, "This is a test.")
 	})
@@ -31,5 +33,7 @@ func main() {
 	if err:=router.Run(":8080"); err != nil{
 		fmt.Println("Failed to start server sir!", err)
 	}
+
+
 }
 
