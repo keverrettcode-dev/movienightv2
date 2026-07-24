@@ -25,6 +25,8 @@ func main() {
 	router.GET("/movie/:imdb_id ", controller.GetMovie())
 
 	router.POST("/addmovie", controller.AddMovie())
+	
+	router.POST("/register", controller.RegisterUser())
 
 	router.GET("/test", func(c *gin.Context) {
 		c.String(200, "This is a test.")
