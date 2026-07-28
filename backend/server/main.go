@@ -11,9 +11,7 @@ import (
 
 
 func main() {
-	//This is the main function
-	
-
+	//This is the main function. 
 	router:=gin.Default()
 
 	router.GET("/slayer", func(c *gin.Context) {

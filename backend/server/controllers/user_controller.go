@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"golang.org/x/crypto/bcrypt"
 )
+
 var userCollection *mongo.Collection = database.OpenCollection("users")
 
 func HashPassword(password string)(string, error) {
@@ -25,18 +26,19 @@ func HashPassword(password string)(string, error) {
 
 func RegisterUser() gin.HandlerFunc{
 	return func(c *gin.Context) {
-		var user models.User
 
+		var user models.User
 		if err:=c.ShouldBindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input."})
 			return
 		}
-		validate := validator.New()
 
+		validate := validator.New()
 		if err := validate.Struct(user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error":"Validation Failed","details": err.Error()})
 			return
 		}
+
 		HashPassword, err := HashPassword(user.Password)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"Unable to hash password"})
@@ -47,7 +49,6 @@ func RegisterUser() gin.HandlerFunc{
 		defer cancel()
 
 		count, err := userCollection.CountDocuments(ctx, bson.M{"email":user.Email})
-
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"Failed to add existing user"})
 			return
@@ -63,7 +64,6 @@ func RegisterUser() gin.HandlerFunc{
 		user.Password = HashPassword
 
 		result, err := userCollection.InsertOne(ctx, user)
-
 		if err != nil{
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"Failed to create user"})
 			return
