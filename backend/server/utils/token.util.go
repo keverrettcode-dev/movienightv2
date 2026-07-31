@@ -1,10 +1,14 @@
 package utils
 
 import (
+	"context"
 	"os"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/keverrettcode-dev/movienightv2/backend/server/database"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type SignedDetails struct {
@@ -17,6 +21,8 @@ type SignedDetails struct {
 }
 
 var SECRET_KEY string = os.Getenv("SECRET_KEY")
+var SECRET_REFRESH_KEY string = os.Getenv("SECRET_REFRESH_KEY")
+var userCollection *mongo.Collection = database.OpenCollection("users")
 
 func GenerateAllTokens(email, firstName, lastName, role, userId string)(string, string, error) {
 	claims := &SignedDetails{
@@ -58,4 +64,24 @@ func GenerateAllTokens(email, firstName, lastName, role, userId string)(string, 
 	}
 
 	return signedToken, signedRefreshToken, nil
+}
+
+func UpdateAllTokens(userId, token, refreshToken string)(err error){
+	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	updateAt, _ := time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+
+	updateData := bson.M{
+		"$set": bson.M{
+			"token": token,
+			"refresh_token": refreshToken,
+			"update_at": updateAt,
+		},
+	}
+	_, err = userCollection.UpdateOne(ctx, bson.M{"user_id": userId}, updateData)
+	if err != nil {
+		return err
+	}
+	return nil
 }

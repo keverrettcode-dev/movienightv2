@@ -25,6 +25,8 @@ func main() {
 	router.POST("/addmovie", controller.AddMovie())
 	
 	router.POST("/register", controller.RegisterUser())
+	
+	router.POST("/login", controller.UserLogin())
 
 	router.GET("/test", func(c *gin.Context) {
 		c.String(200, "This is a test.")
